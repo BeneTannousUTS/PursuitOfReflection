@@ -25,7 +25,7 @@ public class BlockState
             return;
         
         Block block = GameObject.Instantiate(Game.blockNameToPrefab[blockName]).GetComponent<Block>();
-        block.transform.parent = Game.board.blocksParent.transform;
+        block.transform.parent = Game.board.transform;
 
         block.SetData(blockData);
         block.shouldInit = false;

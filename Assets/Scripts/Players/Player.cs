@@ -19,12 +19,7 @@ public class Player : MonoBehaviour
 
     Queue<Action> actionsToPlay = new Queue<Action>();
 
-    Vector2Int _coords = new Vector2Int(-1, -1);
-    public Vector2Int coords
-    {
-        get => _coords;
-        private set => _coords = value;
-    }
+    [HideInInspector] public Vector2Int coords = new Vector2Int(-1, -1);
 
     public Vector3 truePosition
     {
@@ -47,7 +42,8 @@ public class Player : MonoBehaviour
 
     public void Init()
     {
-        coords = startingCoords;
+        if (coords == new Vector2Int(-1, -1))
+            coords = startingCoords;
     }
 
 
@@ -151,7 +147,6 @@ public class Player : MonoBehaviour
     {
         if (actionsToPlay.Count == 0) return;
 
-        print(name + " is doing an action " + actionsToPlay.Count + " left");
         actionsToPlay.Dequeue()();
     }
 
@@ -214,6 +209,7 @@ public class Player : MonoBehaviour
         transform.position = target;
     }
 
+
     IEnumerator BumpIntoWallAnimation(Vector2Int direction)
     {
         transform.up = (Vector2)direction;
@@ -223,5 +219,22 @@ public class Player : MonoBehaviour
         {
             yield return null;
         }
+    }
+
+
+    public override int GetHashCode()
+    {
+        return coords.GetHashCode();
+    }
+
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+        
+        Player other = (Player)obj;
+
+        return coords == other.coords;
     }
 }

@@ -11,6 +11,8 @@ public class Board : MonoBehaviour
     public int width;
     public int height;
 
+    public Player[] players;
+
     List<BoardState> boardStates = new List<BoardState>();
 
     Vector2 offset;
@@ -33,10 +35,9 @@ public class Board : MonoBehaviour
             if (!_hasInit)
                 return false;
             
-            for (int x = 0; x < width; x++)
-                for (int y = 0; y < height; y++)
-                    if (blocks[x, y] != null && !blocks[x, y].hasInit)
-                        return false;
+            foreach (Block block in blocks)
+                if (block != null && !block.hasInit)
+                    return false;
             
             return true;
         }
@@ -207,6 +208,17 @@ public class Board : MonoBehaviour
     }
 
 
+    public void Init()
+    {
+        foreach (Block block in blocks)
+            if (block != null)
+                block.Init();
+        
+        foreach (Player player in players)
+            player.Init();
+    }
+
+
     void UpdateBoard()
     {
         if (this == null) return;
@@ -215,7 +227,6 @@ public class Board : MonoBehaviour
         {
             Block block = blockTransform.GetComponent<Block>();
 
-            block.Init();
             blockTransform.localScale = new Vector3(blockWidth, blockHeight, 1);
         }
 
@@ -230,11 +241,10 @@ public class Board : MonoBehaviour
                 if (blocks[x, y] is not BlockVoid)
                     AddBackgroundBlock(new Vector2Int(x, y));
 
-        foreach (Player player in Game.players)
-        {
-            player.Init();
+        foreach (Player player in players)
             player.transform.localScale = new Vector3(blockWidth, blockHeight, 1);
-        }
+        
+        Init();
     }
 
 
@@ -253,6 +263,41 @@ public class Board : MonoBehaviour
     public void SaveBoardState()
     {
         boardStates.Add(new BoardState(this));
+    }
+
+
+    public override int GetHashCode()
+    {
+        int hash = 0;
+
+        foreach (Block block in blocks)
+            if (block != null)
+                hash ^= block.GetHashCode();
+        
+        foreach (Player player in players)
+            hash ^= player.GetHashCode();
+        
+        return hash;
+    }
+
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+        
+        Board other = (Board)obj;
+        
+        for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+                if (blocks[x, y] != other.blocks[x, y])
+                    return false;
+        
+        for (int i = 0; i < players.Length; i++)
+            if (players[i] != other.players[i])
+                return false;
+        
+        return true;
     }
 
 

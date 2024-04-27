@@ -80,7 +80,7 @@ public class BlockLaser : Block
         base.OnPlayersActionFinish(animate);
 
         foreach (Vector2Int beamCoords in GetLaserPath())
-            foreach (Player player in Game.players)
+            foreach (Player player in Game.board.players)
                 if (player.coords == beamCoords)
                     player.Die(animate);
     }

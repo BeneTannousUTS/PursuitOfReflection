@@ -21,7 +21,7 @@ public class Game : MonoBehaviour
     public List<GameObject> blockPrefabs = new List<GameObject>();
     public static Dictionary<string, GameObject> blockNameToPrefab = new Dictionary<string, GameObject>();
     public static bool isPaused = false;
-    public static Dictionary<LineRenderer, Player[]> visibilityLines = new Dictionary<LineRenderer, Player[]>();
+    public static Dictionary<LineRenderer, int[]> visibilityLines = new Dictionary<LineRenderer, int[]>();
 
     [SerializeField] Board _board;
     public static Board board;
@@ -54,9 +54,13 @@ public class Game : MonoBehaviour
     public static int oneStarTurns;
 
     [SerializeField] Player[] _players;
-    public static Player[] players;
 
     public static Queue<IEnumerator> coroutinesToPlayAtEnd = new Queue<IEnumerator>();
+
+    public static Vector2Int[] directions = new Vector2Int[]
+    {
+        Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right
+    };
 
     public void Awake()
     {
@@ -66,7 +70,7 @@ public class Game : MonoBehaviour
         threeStarsTurns = _threeStarsTurns;
         twoStarsTurns = _twoStarsTurns;
         oneStarTurns = _oneStarTurns;
-        players = _players;
+        board.players = _players;
 
         foreach (GameObject blockPrefab in blockPrefabs)
         {
@@ -80,23 +84,23 @@ public class Game : MonoBehaviour
 
     public void Start()
     {
-        foreach (Player player in players)
+        foreach (Player player in board.players)
             player.UpdatePlayerToStartingCoords();
         
         DestroyImmediate(GameObject.Find("Visibility Lines"));
         GameObject visibilityLinesObject = new GameObject("Visibility Lines");
 
         visibilityLines.Clear();
-        for (int i = 0; i < players.Length; i++)
+        for (int i = 0; i < board.players.Length; i++)
         {
-            for (int j = i + 1; j < players.Length; j++)
+            for (int j = i + 1; j < board.players.Length; j++)
             {
                 GameObject visibilityLine = new GameObject("Visibility Line", typeof(LineRenderer));
                 visibilityLine.transform.parent = visibilityLinesObject.transform;
 
                 LineRenderer lineRenderer = visibilityLine.GetComponent<LineRenderer>();
                 InitLineRenderer(lineRenderer);
-                visibilityLines.Add(lineRenderer, new Player[] { players[i], players[j] });
+                visibilityLines.Add(lineRenderer, new int[] { i, j });
             }
         }
         UpdateVisibilityLines();
@@ -163,10 +167,10 @@ public class Game : MonoBehaviour
     }
 
 
-    public void Update()
-    {
-        UpdateVisibilityLines();
-    }
+    // public void Update()
+    // {
+    //     UpdateVisibilityLines();
+    // }
 
 
     void OnUp()
@@ -192,34 +196,34 @@ public class Game : MonoBehaviour
 
     static void UpdateVisibilityLines()
     {
-        foreach (KeyValuePair<LineRenderer, Player[]> visibilityLine in visibilityLines)
+        foreach (KeyValuePair<LineRenderer, int[]> visibilityLine in visibilityLines)
         {
-            visibilityLine.Key.SetPosition(0, visibilityLine.Value[0].transform.position);
-            visibilityLine.Key.SetPosition(1, visibilityLine.Value[1].transform.position);
+            visibilityLine.Key.SetPosition(0, board.players[visibilityLine.Value[0]].transform.position);
+            visibilityLine.Key.SetPosition(1, board.players[visibilityLine.Value[1]].transform.position);
         }
     }
 
 
     static bool AllPlayersHaveSameCoords()
     {
-        if (players.Length == 0)
+        if (board.players.Length == 0)
             return true;
 
-        Vector2Int coords = players[0].coords;
-        foreach (Player player in players)
+        Vector2Int coords = board.players[0].coords;
+        foreach (Player player in board.players)
             if (player.coords != coords)
                 return false;
         return true;
     }
 
 
-    static bool IsGameFinished(out bool won)
+    static public bool IsGameFinished(out bool won)
     {
         won = false;
 
         CheckPlayersVisibility();
         
-        foreach (Player player in players)
+        foreach (Player player in board.players)
             if (player.isDead)
                 return true;
         
@@ -235,37 +239,40 @@ public class Game : MonoBehaviour
 
     static void CheckPlayersVisibility()
     {
-        foreach (KeyValuePair<LineRenderer, Player[]> visibilityLine in visibilityLines)
+        foreach (KeyValuePair<LineRenderer, int[]> visibilityLine in visibilityLines)
         {
-            if (!visibilityLine.Value[0].CanSeePlayer(visibilityLine.Value[1], out Block[] obstacles))
-            {
-                visibilityLine.Value[0].isDead = true;
-                visibilityLine.Value[1].isDead = true;
+            Player player1 = board.players[visibilityLine.Value[0]];
+            Player player2 = board.players[visibilityLine.Value[1]];
 
-                coroutinesToPlayAtEnd.Enqueue(PlayerLostVisibilityAnimation(visibilityLine, obstacles));
+            if (!player1.CanSeePlayer(player2, out Block[] obstacles))
+            {
+                player1.isDead = true;
+                player2.isDead = true;
+
+                coroutinesToPlayAtEnd.Enqueue(PlayerLostVisibilityAnimation(visibilityLine.Key, new Player[] { player1, player2 }, obstacles));
             }
         }
     }
 
 
-    static IEnumerator PlayerLostVisibilityAnimation(KeyValuePair<LineRenderer, Player[]> visibilityLine, Block[] obstacles)
+    static IEnumerator PlayerLostVisibilityAnimation(LineRenderer line, Player[] players, Block[] obstacles)
     {
         for (int i = 0; i < 5; i++)
         {
-            visibilityLine.Key.startColor = Color.green;
-            visibilityLine.Key.endColor = Color.green;
+            line.startColor = Color.green;
+            line.endColor = Color.green;
             foreach (Block obstacle in obstacles)
                 obstacle.StartCoroutine(obstacle.ChangeSpriteColor(obstacle.defaultColor, 1 / 0.1f));
             yield return new WaitForSeconds(0.1f);
-            visibilityLine.Key.startColor = Color.red;
-            visibilityLine.Key.endColor = Color.red;
+            line.startColor = Color.red;
+            line.endColor = Color.red;
             foreach (Block obstacle in obstacles)
                 obstacle.StartCoroutine(obstacle.ChangeSpriteColor(Color.red, 1 / 0.1f));
             yield return new WaitForSeconds(0.1f);
         }
 
-        visibilityLine.Value[0].Die(animate: true);
-        visibilityLine.Value[1].Die(animate: true);
+        foreach (Player player in players)
+            player.Die(animate: true);
     }
 
 
@@ -273,7 +280,7 @@ public class Game : MonoBehaviour
     {
         yield return null;
 
-        while (players.Any(player => player.isAnimating))
+        while (board.players.Any(player => player.isAnimating))
             yield return null;
         
         while (coroutinesToPlayAtEnd.Count > 0)
@@ -298,7 +305,7 @@ public class Game : MonoBehaviour
         if (isPaused)
             return;
 
-        CalcNextTurn(playerDirection, animate: true);
+        CalcNextTurn(board, playerDirection, animate: true);
 
         turn++;
 
@@ -306,21 +313,21 @@ public class Game : MonoBehaviour
     }
 
 
-    static public void CalcNextTurn(Vector2Int playerDirection, bool animate)
+    static public void CalcNextTurn(Board board, Vector2Int playerDirection, bool animate)
     {
         board.OnTurnChange(animate);
         
-        foreach (Player player in players)
+        foreach (Player player in board.players)
             player.QueueMove(playerDirection, animate);
         
-        while (players.Any(player => player.HasActions()))
-            CalcNextTick(animate);
+        while (board.players.Any(player => player.HasActions()))
+            CalcNextTick(board, animate);
     }
 
 
-    static public void CalcNextTick(bool animate)
+    static public void CalcNextTick(Board board, bool animate)
     {
-        foreach (Player player in players)
+        foreach (Player player in board.players)
             player.DoNextAction();
         
         board.OnPlayersActionFinish(animate);

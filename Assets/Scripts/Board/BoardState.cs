@@ -23,7 +23,7 @@ public class BoardState
             for (int y = 0; y < height; y++)
                 blocksState[x, y] = new BlockState(board.GetBlock(new Vector2Int(x, y)));
 
-        foreach (Player player in Game.players)
+        foreach (Player player in board.players)
             playersState.Add(new PlayerState(player));
     }
 
@@ -37,7 +37,7 @@ public class BoardState
                 blocksState[x, y].Restore();
 
         for (int i = 0; i < playersState.Count; i++)
-            playersState[i].Restore(Game.players[i]);
+            playersState[i].Restore(Game.board.players[i]);
     }
 
 

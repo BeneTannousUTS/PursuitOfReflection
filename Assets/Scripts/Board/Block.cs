@@ -188,6 +188,28 @@ public class Block : MonoBehaviour
     }
 
 
+    public override int GetHashCode()
+    {
+        int hash = blockName.GetHashCode();
+
+        foreach (object value in GetData().Values)
+            hash ^= value.GetHashCode();
+        
+        return hash;
+    }
+
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType())
+            return false;
+        
+        Block other = (Block)obj;
+
+        return blockName == other.blockName && GetData().Equals(other.GetData());
+    }
+
+
     #if UNITY_EDITOR
     protected virtual void OnValidate()
     {
