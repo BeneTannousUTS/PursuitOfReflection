@@ -13,13 +13,15 @@ public class Block : MonoBehaviour
     protected Collider2D collision;
     [SerializeField] Vector2Int startingCoords;
     [SerializeField] bool _isTransparent;
+    [HideInInspector] public bool isMonoBehaviour = true;
     protected bool isTransparent
     {
         get => _isTransparent;
         set
         {
             _isTransparent = value;
-            collision.enabled = !value;
+            if (isMonoBehaviour)
+                collision.enabled = !value;
         }
     }
 
@@ -46,7 +48,8 @@ public class Block : MonoBehaviour
             
             _coords = value;
 
-            transform.position = Game.board.GetBlockPosition(coords);
+            if (isMonoBehaviour)
+                transform.position = Game.board.GetBlockPosition(coords);
         }
     }
 
@@ -73,7 +76,7 @@ public class Block : MonoBehaviour
 
     bool IsPlacedInBoard()
     {
-        return Game.board.GetBlock(coords) == this;
+        return this && Game.board.GetBlock(coords) == this;
     }
 
 
@@ -180,6 +183,10 @@ public class Block : MonoBehaviour
     {
         coords = (Vector2Int)data["coords"];
         isTransparent = (bool)data["isTransparent"];
+
+        if (!isMonoBehaviour)
+            return;
+
         transform.localPosition = (Vector3)data["position"];
         transform.localRotation = (Quaternion)data["rotation"];
         transform.localScale = (Vector3)data["scale"];
@@ -207,6 +214,16 @@ public class Block : MonoBehaviour
         Block other = (Block)obj;
 
         return blockName == other.blockName && GetData().SequenceEqual(other.GetData());
+    }
+
+
+    public Block Duplicate()
+    {
+        Block newBlock = GetType().GetConstructor(new System.Type[0]).Invoke(new object[0]) as Block;
+        newBlock.blockName = blockName;
+        newBlock.isMonoBehaviour = false;
+        newBlock.SetData(GetData());
+        return newBlock;
     }
 
 

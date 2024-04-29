@@ -237,4 +237,12 @@ public class Player : MonoBehaviour
 
         return coords == other.coords;
     }
+
+
+    public Player Duplicate()
+    {
+        Player newPlayer = new Player();
+        newPlayer.coords = coords;
+        return newPlayer;
+    }
 }

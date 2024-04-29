@@ -19,8 +19,22 @@ public class Solver : MonoBehaviour
     {
         yield return new WaitForSeconds(0.1f);
 
-        visited[Game.board] = (null, Vector2Int.zero);
-        yield return Solve(Game.board, animate: false);
+        // visited[Game.board] = (null, Vector2Int.zero);
+        // yield return Solve(Game.board, animate: false);
+
+        Game.CalcNextTurn(Game.board, Vector2Int.right, animate: true);
+
+        print(Game.board.GetHashCode());
+        print(Game.board.players[0].coords + " " + Game.board.players[1].coords);
+
+        Board lastBoard = Game.board;
+
+        Game.board.Duplicate();
+
+        print(Game.board.GetHashCode());
+        print(Game.board.players[0].coords + " " + Game.board.players[1].coords);
+
+        Game.board = lastBoard;
     }
 
 

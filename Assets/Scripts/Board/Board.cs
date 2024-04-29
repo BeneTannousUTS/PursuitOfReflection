@@ -318,6 +318,27 @@ public class Board : MonoBehaviour
     }
 
 
+    public Board Duplicate()
+    {
+        Board newBoard = new Board();
+        Game.board = newBoard;
+
+        newBoard.width = width;
+        newBoard.height = height;
+
+        newBoard.blocks = new Block[width, height];
+        foreach (Block block in blocks)
+            if (block != null)
+                newBoard.SetBlock(block.Duplicate(), block.coords);
+        
+        newBoard.players = new Player[players.Length];
+        for (int i = 0; i < players.Length; i++)
+            newBoard.players[i] = players[i].Duplicate();
+        
+        return newBoard;
+    }
+
+
     #if UNITY_EDITOR
     public void OnValidate()
     {
