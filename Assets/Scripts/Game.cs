@@ -169,10 +169,10 @@ public class Game : MonoBehaviour
     }
 
 
-    // public void Update()
-    // {
-    //     UpdateVisibilityLines();
-    // }
+    public void Update()
+    {
+        UpdateVisibilityLines();
+    }
 
 
     void OnUp()

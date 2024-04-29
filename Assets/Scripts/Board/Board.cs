@@ -76,7 +76,7 @@ public class Board : MonoBehaviour
     {
         InitBlocks();
         
-        foreach (Player player in Game.players)
+        foreach (Player player in Game.board.players)
             player.Init();
     }
 
@@ -231,7 +231,7 @@ public class Board : MonoBehaviour
     }
 
 
-    void UpdateBoard()
+    public void UpdateBoard()
     {
         if (this == null) return;
 
@@ -240,7 +240,7 @@ public class Board : MonoBehaviour
         foreach (Transform blockTransform in blocksParent.transform)
             blockTransform.localScale = new Vector3(blockWidth, blockHeight, 1);
 
-        foreach (Player player in Game.players)
+        foreach (Player player in players)
             player.transform.localScale = new Vector3(blockWidth, blockHeight, 1);
         
         if (background == null)
