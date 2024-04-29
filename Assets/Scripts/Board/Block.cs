@@ -9,7 +9,6 @@ public class Block : MonoBehaviour
 {
     public string blockName;
     [HideInInspector] public Color defaultColor;
-    [HideInInspector] public bool shouldInit = true;
     [SerializeField] protected SpriteRenderer spriteRenderer;
     protected Collider2D collision;
     [SerializeField] Vector2Int startingCoords;
@@ -60,9 +59,6 @@ public class Block : MonoBehaviour
 
     public virtual void Start()
     {
-        if (shouldInit)
-            Init();
-
         if (spriteRenderer != null)
             defaultColor = spriteRenderer.color;
     }
@@ -147,6 +143,9 @@ public class Block : MonoBehaviour
 
     public IEnumerator ChangeSpriteColor(Color targetColor, float animationSpeed)
     {
+        if (spriteRenderer == null)
+            yield break;
+
         float timeRatio = 0;
         Color initialColor = spriteRenderer.color;
 

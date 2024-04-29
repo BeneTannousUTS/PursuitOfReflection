@@ -16,8 +16,9 @@ public class Player : MonoBehaviour
 
     [SerializeField] Vector2Int startingCoords;
     Queue<IEnumerator> coroutinesToPlay = new Queue<IEnumerator>();
-
     Queue<Action> actionsToPlay = new Queue<Action>();
+
+    [HideInInspector] public bool isSliding = false;
 
     [HideInInspector] public Vector2Int coords = new Vector2Int(-1, -1);
 
@@ -28,11 +29,6 @@ public class Player : MonoBehaviour
 
     public float speed;
 
-    void Awake()
-    {
-        isDead = false;
-    }
-
     public void Start()
     {
         animator = GetComponent<Animator>();
@@ -42,8 +38,10 @@ public class Player : MonoBehaviour
 
     public void Init()
     {
-        if (coords == new Vector2Int(-1, -1))
-            coords = startingCoords;
+        isDead = false;
+        isAnimating = false;
+        isSliding = false;
+        coords = startingCoords;
     }
 
 
@@ -215,8 +213,10 @@ public class Player : MonoBehaviour
         transform.up = (Vector2)direction;
         animator.SetTrigger("bumpIntoWall");
 
-        while (animator.GetCurrentAnimatorStateInfo(0).shortNameHash != Animator.StringToHash("Idle"))
+        float timeRatio = 0f;
+        while (timeRatio < 1f)
         {
+            timeRatio += Time.deltaTime * speed;
             yield return null;
         }
     }

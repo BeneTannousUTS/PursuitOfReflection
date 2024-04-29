@@ -22,6 +22,7 @@ public class Board : MonoBehaviour
 
     [SerializeField] GameObject emptyBlockPrefab;
     public GameObject background;
+    [SerializeField] GameObject backgroundPrefab;
     public GameObject blocksParent;
 
     Block[,] blocks;
@@ -55,6 +56,28 @@ public class Board : MonoBehaviour
     {
         levelName = SceneManager.GetActiveScene().name;
         _hasInit = true;
+    }
+
+
+    void InitBlocks()
+    {
+        foreach (Transform blockTransform in blocksParent.transform)
+        {
+            Block block = blockTransform.GetComponent<Block>();
+            if (block == null)
+                continue;
+            
+            block.Init();
+        }
+    }
+
+
+    public void Init()
+    {
+        InitBlocks();
+        
+        foreach (Player player in Game.players)
+            player.Init();
     }
 
 
@@ -208,43 +231,33 @@ public class Board : MonoBehaviour
     }
 
 
-    public void Init()
-    {
-        foreach (Block block in blocks)
-            if (block != null)
-                block.Init();
-        
-        foreach (Player player in players)
-            player.Init();
-    }
-
-
     void UpdateBoard()
     {
         if (this == null) return;
 
+        Init();
+
         foreach (Transform blockTransform in blocksParent.transform)
-        {
-            Block block = blockTransform.GetComponent<Block>();
-
             blockTransform.localScale = new Vector3(blockWidth, blockHeight, 1);
-        }
 
+        foreach (Player player in Game.players)
+            player.transform.localScale = new Vector3(blockWidth, blockHeight, 1);
+        
         if (background == null)
             background = GameObject.Find("Background");
         DestroyImmediate(background);
 
-        background = new GameObject("Background");
+        background = Instantiate(backgroundPrefab);
+        background.name = "Background";
         
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 if (blocks[x, y] is not BlockVoid)
                     AddBackgroundBlock(new Vector2Int(x, y));
 
-        foreach (Player player in players)
-            player.transform.localScale = new Vector3(blockWidth, blockHeight, 1);
-        
-        Init();
+        foreach (Block block in blocks)
+            if (block != null)
+                block.UpdateSprite();
     }
 
 
@@ -255,6 +268,10 @@ public class Board : MonoBehaviour
 
         boardStates.RemoveAt(boardStates.Count - 1);
         boardStates[boardStates.Count - 1].Restore(this);
+
+        foreach (Block block in blocks)
+            if (block != null)
+                block.UpdateSprite();
 
         Game.turn--;
     }
