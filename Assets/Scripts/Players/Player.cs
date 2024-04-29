@@ -224,7 +224,7 @@ public class Player : MonoBehaviour
 
     public override int GetHashCode()
     {
-        return coords.GetHashCode();
+        return coords.ToString().GetHashCode();
     }
 
 

@@ -290,11 +290,11 @@ public class Board : MonoBehaviour
         
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                if (blocks[x, y] != other.blocks[x, y])
+                if (blocks[x, y] && other.blocks[x, y] && !blocks[x, y].Equals(other.blocks[x, y]))
                     return false;
         
         for (int i = 0; i < players.Length; i++)
-            if (players[i] != other.players[i])
+            if (!players[i].Equals(other.players[i]))
                 return false;
         
         return true;

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 
 [ExecuteInEditMode]
@@ -206,7 +207,7 @@ public class Block : MonoBehaviour
         
         Block other = (Block)obj;
 
-        return blockName == other.blockName && GetData().Equals(other.GetData());
+        return blockName == other.blockName && GetData().SequenceEqual(other.GetData());
     }
 
 
